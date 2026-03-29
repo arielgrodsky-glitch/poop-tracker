@@ -125,4 +125,19 @@ function monthKey(ts) {
 
 app.listen(PORT, () => {
   console.log(`💩 Poop Tracker API running on port ${PORT}`);
+
+  // ── KEEP-ALIVE PING ──────────────────────────────────────────────
+  // Render free tier sleeps after 15 min of inactivity.
+  // Ping ourselves every 14 minutes to stay awake.
+  const RENDER_URL = process.env.RENDER_EXTERNAL_URL;
+  if (RENDER_URL) {
+    setInterval(async () => {
+      try {
+        await fetch(RENDER_URL + '/');
+        console.log('[keep-alive] pinged self ✓');
+      } catch (e) {
+        console.warn('[keep-alive] ping failed:', e.message);
+      }
+    }, 14 * 60 * 1000); // every 14 minutes
+  }
 });
