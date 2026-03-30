@@ -90,7 +90,9 @@ app.post('/logs', requireAuth, (req, res) => {
   const data = loadData();
   const now = Date.now();
   const month = monthKey(now);
-  data.logs.push({ user: req.username, month, ts: now });
+  const VALID_QUALITIES = ['god','excellent','good','fine','sticky','diarrhea'];
+  const quality = VALID_QUALITIES.includes(req.body?.quality) ? req.body.quality : null;
+  data.logs.push({ user: req.username, month, ts: now, quality });
   saveData(data);
   res.json({ success: true, ts: now });
 });
@@ -115,6 +117,16 @@ app.get('/logs/leaderboard', requireAuth, (req, res) => {
     .sort((a, b) => b[1] - a[1])
     .map(([name, count]) => ({ name, count }));
   res.json(sorted);
+});
+
+// Get any user's logs for current month (authenticated)
+app.get('/logs/user/:username', requireAuth, (req, res) => {
+  const data = loadData();
+  const month = monthKey(Date.now());
+  const userLogs = data.logs
+    .filter(l => l.user === req.params.username && l.month === month)
+    .map(({ ts, quality }) => ({ ts, quality })); // don't expose other fields
+  res.json(userLogs);
 });
 
 // ── HELPERS ────────────────────────────────────────────────────────
